@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport"
+  content="width=device-width, initial-scale=1.0"/>
+
+  <title>
+    Smart Civic Reporting System
+  </title>
+
+  <!-- LEAFLET -->
+
+  <link rel="stylesheet"
+  href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      background:#f4f7fb;
+      color:#222;
+    }
+
+    /* ================= HEADER ================= */
+
+    header{
+
+      background:
+      linear-gradient(
+      90deg,
+      #0f4c81,
+      #0077b6
+      );
+
+      color:white;
+
+      padding:25px;
+
+      text-align:center;
+
+      position:relative;
+
+    }
+
+    header h1{
+      font-size:38px;
+      margin-bottom:10px;
+    }
+
+    header p{
+      font-size:18px;
+    }
+
+    /* LANGUAGE SELECTOR */
+
+    .language-box{
+
+      position:absolute;
+
+      top:20px;
+
+      right:20px;
+
+    }
+
+    .language-box select{
+
+      padding:10px 15px;
+
+      border:none;
+
+      border-radius:8px;
+
+      font-size:15px;
+
+      cursor:pointer;
+
+      outline:none;
+
+      background:white;
+
+      font-weight:bold;
+
+    }
+
+    /* ================= CONTAINER ================= */
+
+    .container{
+
+      display:grid;
+
+      grid-template-columns:1fr 1fr;
+
+      gap:20px;
+
+      padding:20px;
+
+    }
+
+    .card{
+
+      background:white;
+
+      padding:20px;
+
+      border-radius:15px;
+
+      box-shadow:
+      0 4px 10px rgba(0,0,0,0.1);
+
+    }
+
+    h2{
+
+      margin-bottom:15px;
+
+      color:#0f4c81;
+
+      font-size:30px;
+
+    }
+
+    label{
+
+      display:block;
+
+      margin-top:15px;
+
+      margin-bottom:5px;
+
+      font-weight:bold;
+
+      font-size:20px;
+
+    }
+
+    input,
+    select,
+    textarea{
+
+      width:100%;
+
+      padding:12px;
+
+      border:1px solid #ccc;
+
+      border-radius:8px;
+
+      font-size:16px;
+
+      margin-bottom:10px;
+
+    }
+
+    textarea{
+
+      resize:none;
+
+      height:120px;
+
+    }
+
+    /* BUTTONS */
+
+    .button-group{
+
+      display:flex;
+
+      gap:10px;
+
+      margin-top:10px;
+
+      margin-bottom:10px;
+
+    }
+
+    button{
+
+      border:none;
+
+      border-radius:8px;
+
+      padding:12px 18px;
+
+      color:white;
+
+      cursor:pointer;
+
+      font-size:15px;
+
+      transition:0.3s;
+
+    }
+
+    .submit-btn{
+
+      background:#0077b6;
+
+      width:100%;
+
+      margin-top:15px;
+
+      font-size:18px;
+
+      font-weight:bold;
+
+    }
+
+    .submit-btn:hover{
+      background:#023e8a;
+    }
+
+    .mic-btn{
+
+      background:#28a745;
+
+      font-weight:bold;
+
+    }
+
+    .mic-btn:hover{
+      background:#1f7a34;
+    }
+
+    .clear-btn{
+
+      background:#dc3545;
+
+      font-weight:bold;
+
+    }
+
+    .clear-btn:hover{
+      background:#b02a37;
+    }
+
+    /* RESOLVE BUTTON */
+
+    .resolve-btn{
+
+      background:#00c853;
+
+      color:white;
+
+      font-weight:bold;
+
+      font-size:16px;
+
+      padding:12px 20px;
+
+      border:none;
+
+      border-radius:10px;
+
+      cursor:pointer;
+
+      margin-top:12px;
+
+      box-shadow:
+      0 0 12px rgba(0,200,83,0.6);
+
+      transition:0.3s;
+
+    }
+
+    .resolve-btn:hover{
+
+      background:#00e676;
+
+      transform:scale(1.05);
+
+      box-shadow:
+      0 0 18px rgba(0,230,118,0.8);
+
+    }
+
+    /* MAP */
+
+    #map{
+
+      width:100%;
+
+      height:500px;
+
+      border-radius:12px;
+
+    }
+
+    /* DASHBOARD */
+
+    .analytics{
+
+      display:grid;
+
+      grid-template-columns:
+      repeat(3,1fr);
+
+      gap:15px;
+
+      margin-top:20px;
+
+    }
+
+    .analytic-box{
+
+      background:#0077b6;
+
+      color:white;
+
+      padding:20px;
+
+      border-radius:12px;
+
+      text-align:center;
+
+    }
+
+    .analytic-box h3{
+
+      font-size:30px;
+
+      margin-bottom:10px;
+
+    }
+
+    .report-list{
+
+      max-height:700px;
+
+      overflow-y:auto;
+
+    }
+
+    .report-item{
+
+      background:#eef5ff;
+
+      margin-bottom:15px;
+
+      padding:15px;
+
+      border-radius:10px;
+
+      border-left:5px solid #0077b6;
+
+    }
+
+    .report-item img{
+
+      width:100%;
+
+      margin-top:10px;
+
+      border-radius:10px;
+
+    }
+
+    .status{
+
+      display:inline-block;
+
+      margin-top:10px;
+
+      padding:5px 10px;
+
+      border-radius:20px;
+
+      color:white;
+
+      font-size:12px;
+
+      font-weight:bold;
+
+    }
+
+    .pending{
+      background:orange;
+    }
+
+    .resolved{
+      background:green;
+    }
+
+    footer{
+
+      text-align:center;
+
+      padding:20px;
+
+      color:#666;
+
+      font-size:16px;
+
+    }
+
+    /* MOBILE */
+
+    @media(max-width:900px){
+
+      .container{
+
+        grid-template-columns:1fr;
+
+      }
+
+      .analytics{
+
+        grid-template-columns:1fr;
+
+      }
+
+      .button-group{
+
+        flex-direction:column;
+
+      }
+
+      .language-box{
+
+        position:static;
+
+        margin-top:20px;
+
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<header>
+
+  <h1 id="mainTitle">
+    Smart Civic Reporting System
+  </h1>
+
+  <p id="mainSubtitle">
+    AI-Powered Citizen Issue Reporting Platform
+  </p>
+
+  <div class="language-box">
+
+    <select id="globalLanguage"
+    onchange="changeLanguage()">
+
+      <option value="en">
+        English
+      </option>
+
+      <option value="hi">
+        हिन्दी
+      </option>
+
+      <option value="bn">
+        বাংলা
+      </option>
+
+    </select>
+
+  </div>
+
+</header>
+
+<div class="container">
+
+  <!-- FORM -->
+
+  <div class="card">
+
+    <h2 id="submitIssueText">
+      Submit an Issue
+    </h2>
+
+    <label id="titleLabel">
+      Issue Title
+    </label>
+
+    <input type="text"
+    id="title"
+    placeholder="Enter issue title">
+
+    <label id="categoryLabel">
+      Issue Category
+    </label>
+
+    <select id="category">
+
+      <option id="roadDamage">
+        Road Damage
+      </option>
+
+      <option id="garbage">
+        Garbage
+      </option>
+
+      <option id="waterLeakage">
+        Water Leakage
+      </option>
+
+      <option id="streetLight">
+        Street Light
+      </option>
+
+      <option id="drainage">
+        Drainage
+      </option>
+
+    </select>
+
+    <label id="descriptionLabel">
+      Description
+    </label>
+
+    <textarea
+    id="description"
+    placeholder="Describe the issue...">
+    </textarea>
+
+    <div class="button-group">
+
+      <button
+      type="button"
+      class="mic-btn"
+      onclick="startVoiceInput()"
+      id="speakBtn">
+
+        🎤 Speak
+
+      </button>
+
+      <button
+      type="button"
+      class="clear-btn"
+      onclick="clearDescription()"
+      id="clearBtn">
+
+        ✖ Clear
+
+      </button>
+
+    </div>
+
+    <label id="uploadLabel">
+      Upload Photo
+    </label>
+
+    <input
+    type="file"
+    id="imageInput"
+    accept="image/*">
+
+    <label id="locationLabel">
+      Location
+    </label>
+
+    <input
+    type="text"
+    id="location"
+    readonly
+    placeholder="Fetching location...">
+
+    <button
+    class="submit-btn"
+    onclick="submitReport()"
+    id="submitBtn">
+
+      Submit Report
+
+    </button>
+
+  </div>
+
+  <!-- MAP -->
+
+  <div class="card">
+
+    <h2 id="mapTitle">
+      Live City Issue Map
+    </h2>
+
+    <div id="map"></div>
+
+  </div>
+
+</div>
+
+<!-- DASHBOARD -->
+
+<div class="container">
+
+  <div class="card">
+
+    <h2 id="dashboardTitle">
+      Administrative Dashboard
+    </h2>
+
+    <div class="analytics">
+
+      <div class="analytic-box">
+
+        <h3 id="totalReports">
+          0
+        </h3>
+
+        <p id="totalText">
+          Total Reports
+        </p>
+
+      </div>
+
+      <div class="analytic-box">
+
+        <h3 id="pendingReports">
+          0
+        </h3>
+
+        <p id="pendingText">
+          Pending
+        </p>
+
+      </div>
+
+      <div class="analytic-box">
+
+        <h3 id="resolvedReports">
+          0
+        </h3>
+
+        <p id="resolvedText">
+          Resolved
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- REPORTS -->
+
+  <div class="card">
+
+    <h2 id="reportsTitle">
+      Reported Issues
+    </h2>
+
+    <div class="report-list"
+    id="reportList"></div>
+
+  </div>
+
+</div>
+
+<footer id="footerText">
+
+  Smart Governance Platform |
+  Built for Civic Engagement
+
+</footer>
+
+<!-- LEAFLET -->
+
+<script src=
+"https://unpkg.com/leaflet/dist/leaflet.js">
+</script>
+
+<script>
+
+  // =========================
+  // MAP
+  // =========================
+
+  const map =
+  L.map('map')
+  .setView([22.5726,88.3639],12);
+
+  L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+
+  // =========================
+  // LOCATION
+  // =========================
+
+  let currentLat = 22.5726;
+  let currentLng = 88.3639;
+
+  navigator.geolocation.getCurrentPosition(
+
+    position => {
+
+      currentLat =
+      position.coords.latitude;
+
+      currentLng =
+      position.coords.longitude;
+
+      document.getElementById(
+      "location").value =
+      `Lat: ${currentLat.toFixed(4)},
+      Lng: ${currentLng.toFixed(4)}`;
+
+      map.setView(
+      [currentLat,currentLng],13);
+
+      L.marker([currentLat,currentLng])
+      .addTo(map)
+      .bindPopup("Your Location")
+      .openPopup();
+
+    }
+
+  );
+
+  // =========================
+  // VOICE INPUT
+  // =========================
+
+  function startVoiceInput(){
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+
+      alert(
+      "Speech Recognition not supported");
+
+      return;
+    }
+
+    const recognition =
+    new SpeechRecognition();
+
+    recognition.lang = "en-US";
+
+    recognition.start();
+
+    recognition.onresult = (event) => {
+
+      const text =
+      event.results[0][0].transcript;
+
+      document.getElementById(
+      "description").value = text;
+
+    };
+
+  }
+
+  // =========================
+  // CLEAR DESCRIPTION
+  // =========================
+
+  function clearDescription(){
+
+    document.getElementById(
+    "description").value = "";
+
+  }
+
+  // =========================
+  // REPORTS
+  // =========================
+
+  let reports = [];
+
+  function submitReport(){
+
+    const title =
+    document.getElementById(
+    "title").value;
+
+    const category =
+    document.getElementById(
+    "category").value;
+
+    const description =
+    document.getElementById(
+    "description").value;
+
+    const imageInput =
+    document.getElementById(
+    "imageInput");
+
+    if(title === "" ||
+    description === ""){
+
+      alert(
+      "Please fill all details");
+
+      return;
+
+    }
+
+    let imageURL = "";
+
+    if(imageInput.files[0]){
+
+      imageURL =
+      URL.createObjectURL(
+      imageInput.files[0]);
+
+    }
+
+    const report = {
+
+      title,
+      category,
+      description,
+      imageURL,
+      status:"Pending",
+      lat:currentLat,
+      lng:currentLng,
+      time:new Date()
+
+    };
+
+    reports.push(report);
+
+    renderReports();
+
+    updateAnalytics();
+
+    addMarker(title);
+
+    alert(
+    "Report Submitted Successfully!");
+
+    document.getElementById(
+    "title").value = "";
+
+    document.getElementById(
+    "description").value = "";
+
+    document.getElementById(
+    "imageInput").value = "";
+
+  }
+
+  // =========================
+  // DISPLAY REPORTS
+  // =========================
+
+  function renderReports(){
+
+    const reportList =
+    document.getElementById(
+    "reportList");
+
+    reportList.innerHTML = "";
+
+    reports.forEach(
+    (report,index)=>{
+
+      reportList.innerHTML += `
+
+      <div class="report-item">
+
+        <div style="
+        display:flex;
+        justify-content:space-between;
+        gap:20px;
+        flex-wrap:wrap;
+        ">
+
+          <!-- LEFT -->
+
+          <div style="
+          flex:2;
+          min-width:300px;
+          ">
+
+            <h3 style="
+            font-size:28px;
+            color:#0f4c81;
+            margin-bottom:10px;
+            ">
+
+              ${report.title}
+
+            </h3>
+
+            <p style="font-size:18px;">
+
+              <strong>Category:</strong>
+              ${report.category}
+
+            </p>
+
+            <p style="
+            margin-top:10px;
+            font-size:17px;
+            line-height:1.5;
+            ">
+
+              ${report.description}
+
+            </p>
+
+            ${
+              report.imageURL
+              ?
+              `
+              <img
+              src="${report.imageURL}">
+              `
+              :
+              ""
+            }
+
+            <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-top:15px;
+            flex-wrap:wrap;
+            gap:10px;
+            ">
+
+              <div class="
+              status
+              ${report.status === 'Pending'
+              ? 'pending'
+              : 'resolved'}
+              ">
+
+                ${report.status}
+
+              </div>
+
+              <div style="
+              font-size:15px;
+              color:#555;
+              font-weight:bold;
+              ">
+
+                📅
+                ${report.time.toLocaleDateString()}
+                |
+                ⏰
+                ${report.time.toLocaleTimeString()}
+
+              </div>
+
+            </div>
+
+            <button
+            class="resolve-btn"
+            onclick="resolveIssue(${index})">
+
+              ✅ Mark Resolved
+
+            </button>
+
+          </div>
+
+          <!-- RIGHT MAP -->
+
+          <div style="
+          flex:1;
+          min-width:250px;
+          ">
+
+            <button
+            onclick="
+            window.open(
+            'https://www.google.com/maps?q=${report.lat},${report.lng}'
+            )"
+            style="
+            width:100%;
+            background:#0077b6;
+            color:white;
+            border:none;
+            padding:12px;
+            border-radius:10px;
+            font-size:16px;
+            font-weight:bold;
+            margin-bottom:15px;
+            cursor:pointer;
+            ">
+
+              📍 View on Map
+
+            </button>
+
+            <div style="
+            background:white;
+            border-radius:12px;
+            overflow:hidden;
+            box-shadow:
+            0 2px 8px rgba(0,0,0,0.1);
+            ">
+
+              <div style="
+              background:#0077b6;
+              color:white;
+              padding:10px;
+              font-weight:bold;
+              font-size:18px;
+              ">
+
+                Issue Location
+
+              </div>
+
+              <iframe
+              width="100%"
+              height="250"
+              frameborder="0"
+              style="border:0"
+              src="
+              https://maps.google.com/maps?q=
+              ${report.lat},
+              ${report.lng}
+              &z=15&output=embed"
+              allowfullscreen>
+              </iframe>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      `;
+
+    });
+
+  }
+
+  // =========================
+  // RESOLVE
+  // =========================
+
+  function resolveIssue(index){
+
+    reports[index].status =
+    "Resolved";
+
+    renderReports();
+
+    updateAnalytics();
+
+  }
+
+  // =========================
+  // ANALYTICS
+  // =========================
+
+  function updateAnalytics(){
+
+    document.getElementById(
+    "totalReports").innerText =
+    reports.length;
+
+    document.getElementById(
+    "pendingReports").innerText =
+
+    reports.filter(
+    r => r.status === "Pending"
+    ).length;
+
+    document.getElementById(
+    "resolvedReports").innerText =
+
+    reports.filter(
+    r => r.status === "Resolved"
+    ).length;
+
+  }
+
+  // =========================
+  // MAP MARKERS
+  // =========================
+
+  function addMarker(title){
+
+    L.marker([currentLat,currentLng])
+
+    .addTo(map)
+
+    .bindPopup(`
+    <b>${title}</b><br>
+    Citizen Report Submitted
+    `);
+
+  }
+
+</script>
+
+</body>
+</html>
