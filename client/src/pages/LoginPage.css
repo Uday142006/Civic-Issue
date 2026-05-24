@@ -1,0 +1,254 @@
+/* Login Page Styles */
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0077b6 0%, #0f4c81 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.login-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+}
+
+.login-header {
+  background: linear-gradient(90deg, #0f4c81, #0077b6);
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.login-header h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.login-header p {
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.error-banner {
+  background: #ffe0e0;
+  color: #dc3545;
+  padding: 15px 20px;
+  border-left: 4px solid #dc3545;
+  margin: 0;
+  font-weight: bold;
+}
+
+/* Login Tabs */
+.login-tabs {
+  display: flex;
+  border-bottom: 2px solid #eee;
+  padding: 0 20px;
+  gap: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  color: #999;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover {
+  color: #0077b6;
+}
+
+.tab-btn.active {
+  color: #0077b6;
+  border-bottom-color: #0077b6;
+}
+
+/* Form Container */
+.login-form-container {
+  padding: 30px 20px;
+}
+
+.login-form-container h2 {
+  color: #0077b6;
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #0077b6;
+  box-shadow: 0 0 8px rgba(0, 119, 182, 0.2);
+}
+
+.form-group small {
+  display: block;
+  margin-top: 5px;
+  color: #999;
+  font-size: 12px;
+}
+
+/* Buttons */
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: #0077b6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  background: #0f4c81;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 119, 182, 0.3);
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 12px;
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.btn-secondary:hover {
+  background: #ddd;
+}
+
+/* Google Sign-In */
+.google-signin-container {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.google-btn-wrapper {
+  margin: 30px 0;
+}
+
+.btn-google {
+  padding: 12px 30px;
+  background: white;
+  color: #1f2937;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.btn-google:hover {
+  background: #f9fafb;
+  border-color: #0077b6;
+}
+
+.oauth-info {
+  background: #f0f7ff;
+  padding: 15px;
+  border-radius: 8px;
+  color: #0077b6;
+  font-size: 14px;
+  line-height: 1.8;
+  margin-top: 20px;
+}
+
+.oauth-info strong {
+  display: block;
+}
+
+/* Admin Info */
+.admin-info {
+  background: #fff3cd;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #856404;
+}
+
+.admin-info p {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .login-container {
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+  }
+
+  .login-header {
+    padding: 30px 20px;
+  }
+
+  .login-header h1 {
+    font-size: 24px;
+  }
+
+  .login-tabs {
+    gap: 0;
+  }
+
+  .tab-btn {
+    font-size: 12px;
+    padding: 12px 8px;
+  }
+}

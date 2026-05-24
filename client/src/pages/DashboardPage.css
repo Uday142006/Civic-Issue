@@ -1,0 +1,16 @@
+/* Dashboard Page Styles */
+.dashboard-page {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.dashboard-page h1 {
+  color: #0077b6;
+  margin-bottom: 10px;
+}
+
+.dashboard-page p {
+  color: #666;
+  margin-bottom: 30px;
+}

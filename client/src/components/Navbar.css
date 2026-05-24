@@ -1,0 +1,60 @@
+/* Navbar Styles */
+.navbar {
+  background: linear-gradient(90deg, #0f4c81, #0077b6);
+  padding: 15px 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: white;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #ffa500;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid white;
+  padding: 8px 15px;
+  border-radius: 5px;
+}
+
+.register-btn {
+  background: white;
+  color: #0077b6;
+  padding: 8px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+}

@@ -1,0 +1,15 @@
+/* Report Detail Page Styles */
+.report-detail-page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.report-detail-page h1 {
+  color: #0077b6;
+  margin-bottom: 10px;
+}
+
+.report-detail-page p {
+  color: #666;
+}
