@@ -7,20 +7,39 @@ const router = express.Router();
 // Create report
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, description, category, latitude, longitude, address, image } = req.body;
+    const { title, description, category, latitude, longitude, address, images = [], voiceNotes = [], priority = 'medium' } = req.body;
 
     const report = new Report({
       title,
       description,
       category,
+      priority,
       location: {
         type: 'Point',
         coordinates: [longitude, latitude],
         address,
       },
-      image,
+      images: images.map(img => ({
+        url: img.url || img,
+        publicId: img.publicId,
+      })),
+      voiceNotes: voiceNotes.map(voice => ({
+        url: voice.url || voice,
+        duration: voice.duration,
+      })),
       submittedBy: req.user.id,
     });
+
+    // Automated routing: assign to department based on category
+    const categoryToDepartment = {
+      'road_damage': 'public_works',
+      'garbage': 'sanitation',
+      'water_leakage': 'utilities',
+      'street_light': 'public_works',
+      'drainage': 'utilities',
+      'other': 'other',
+    };
+    report.department = categoryToDepartment[category] || 'other';
 
     await report.save();
     await report.populate('submittedBy', 'name email avatar');
@@ -110,6 +129,83 @@ router.post('/:id/upvote', auth, async (req, res) => {
       report.upvotes += 1;
       await report.save();
     }
+
+    res.json({ success: true, report });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Add comment to report
+router.post('/:id/comments', auth, async (req, res) => {
+  try {
+    const { text } = req.body;
+    
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: 'Comment cannot be empty' });
+    }
+
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+
+    report.comments.push({
+      userId: req.user.id,
+      text,
+      timestamp: new Date(),
+    });
+
+    await report.save();
+    await report.populate('comments.userId', 'name email avatar');
+
+    res.json({ success: true, message: 'Comment added', report });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Upload voice note to report
+router.post('/:id/voice-notes', auth, async (req, res) => {
+  try {
+    const { voiceUrl, duration } = req.body;
+    
+    if (!voiceUrl) {
+      return res.status(400).json({ message: 'Voice URL required' });
+    }
+
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+
+    report.voiceNotes.push({
+      url: voiceUrl,
+      duration: duration || 0,
+      uploadedAt: new Date(),
+    });
+
+    await report.save();
+    res.json({ success: true, message: 'Voice note added', report });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update report priority (admin only)
+router.patch('/:id/priority', auth, async (req, res) => {
+  try {
+    const { priority } = req.body;
+    
+    if (!['low', 'medium', 'high', 'critical'].includes(priority)) {
+      return res.status(400).json({ message: 'Invalid priority level' });
+    }
+
+    const report = await Report.findByIdAndUpdate(
+      req.params.id,
+      { priority },
+      { new: true }
+    );
 
     res.json({ success: true, report });
   } catch (error) {

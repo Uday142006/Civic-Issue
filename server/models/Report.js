@@ -39,14 +39,26 @@ const reportSchema = new mongoose.Schema({
     city: String,
     state: String,
   },
-  image: {
-    url: String,
-    publicId: String, // For Cloudinary
-  },
-  voiceNote: {
-    url: String,
-    duration: Number,
-  },
+  images: [
+    {
+      url: String,
+      publicId: String, // For Cloudinary
+      uploadedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+  voiceNotes: [
+    {
+      url: String,
+      duration: Number,
+      uploadedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   submittedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

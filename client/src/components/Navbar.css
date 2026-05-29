@@ -1,60 +1,197 @@
-/* Navbar Styles */
+/* ============================================
+   NAVBAR - FUTURISTIC DESIGN
+   ============================================ */
+
 .navbar {
-  background: linear-gradient(90deg, #0f4c81, #0077b6);
-  padding: 15px 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--glass-border);
+  padding: var(--spacing-md) 0;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 999;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: slideDown 400ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .navbar-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 var(--spacing-xl);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .navbar-logo {
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  white-space: nowrap;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.5));
+}
+
+.navbar-logo::after {
+  content: '';
+  width: 2px;
+  height: 24px;
+  background: var(--gradient-primary);
+  border-radius: 1px;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .nav-menu {
   display: flex;
   list-style: none;
-  gap: 30px;
+  gap: var(--spacing-xl);
+  align-items: center;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .nav-link {
-  color: white;
-  transition: color 0.3s ease;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  position: relative;
+  text-decoration: none;
+  padding: var(--spacing-sm) 0;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  transition: width var(--transition-fast);
 }
 
 .nav-link:hover {
-  color: #ffa500;
+  color: var(--primary);
 }
 
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Logout Button */
 .logout-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid white;
-  padding: 8px 15px;
-  border-radius: 5px;
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
+.logout-btn:hover {
+  background: rgba(0, 217, 255, 0.1);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Register Button */
 .register-btn {
-  background: white;
-  color: #0077b6;
-  padding: 8px 20px;
-  border-radius: 5px;
-  font-weight: bold;
+  background: var(--gradient-primary);
+  color: #000;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all var(--transition-fast);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+}
+
+.register-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 25px rgba(0, 217, 255, 0.5);
+  letter-spacing: 0.5px;
+}
+
+/* Notification Item */
+.notification-item {
+  padding: 0 var(--spacing-md);
+  border-right: 1px solid var(--glass-border);
+  border-left: 1px solid var(--glass-border);
+}
+
+/* Theme Toggle Item */
+.theme-item {
+  display: flex;
+  align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 var(--spacing-lg);
+  }
+
+  .nav-menu {
+    gap: var(--spacing-lg);
+  }
+
+  .navbar-logo {
+    font-size: 1.25rem;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+  }
+
+  .notification-item {
+    border: none;
+    padding: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-logo::after {
+    display: none;
+  }
+
+  .nav-menu {
+    gap: var(--spacing-md);
+  }
+
+  .register-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.8rem;
+  }
 }

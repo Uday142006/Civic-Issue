@@ -3,12 +3,19 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http');
 const path = require('path');
+const { Server } = require('socket.io');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN?.split(',') || 'http://localhost:3000',
+    credentials: true,
+  },
+});
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
@@ -17,6 +24,9 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN?.split(',') || 'http://localhost:3000',
   credentials: true
 }));
+
+// Make io accessible to routes
+app.set('io', io);
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -27,10 +37,40 @@ app.use('/api/reports', require('./routes/reports.routes'));
 app.use('/api/users', require('./routes/users.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/analytics', require('./routes/analytics.routes'));
+app.use('/api/notifications', require('./routes/notifications.routes'));
+app.use('/api/messages', require('./routes/messages.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
+});
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log(`✅ User connected: ${socket.id}`);
+
+  // Join user's personal room for notifications
+  socket.on('join-user-room', (userId) => {
+    socket.join(`user-${userId}`);
+    console.log(`User ${userId} joined their notification room`);
+  });
+
+  // Join report room for real-time report updates
+  socket.on('join-report-room', (reportId) => {
+    socket.join(`report-${reportId}`);
+    console.log(`Socket ${socket.id} joined report ${reportId}`);
+  });
+
+  // Leave report room
+  socket.on('leave-report-room', (reportId) => {
+    socket.leave(`report-${reportId}`);
+    console.log(`Socket ${socket.id} left report ${reportId}`);
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log(`❌ User disconnected: ${socket.id}`);
+  });
 });
 
 // 404 handler

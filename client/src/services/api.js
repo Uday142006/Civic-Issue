@@ -20,33 +20,27 @@ api.interceptors.request.use((config) => {
 
 // Auth Services
 export const authService = {
-  // Phone OTP
   sendOTP: (phone) =>
     api.post('/auth/send-otp', { phone }),
   
   verifyOTP: (data) =>
     api.post('/auth/verify-otp', data),
 
-  // Google OAuth
   googleAuth: (googleData) =>
     api.post('/auth/google-auth', googleData),
 
-  // Traditional Email/Password
   register: (name, email, password, phone) =>
     api.post('/auth/register', { name, email, password, phone }),
   
   login: (email, password) =>
     api.post('/auth/login', { email, password }),
 
-  // Admin Login
   adminLogin: (email, password) =>
     api.post('/auth/admin-login', { email, password }),
 
-  // Verify Token
   verify: () =>
     api.get('/auth/verify'),
 
-  // Logout
   logout: () =>
     api.post('/auth/logout'),
 }
@@ -65,11 +59,17 @@ export const reportService = {
   updateReportStatus: (id, status) =>
     api.patch(`/reports/${id}/status`, { status }),
   
+  updateReportPriority: (id, priority) =>
+    api.patch(`/reports/${id}/priority`, { priority }),
+  
   upvoteReport: (id) =>
     api.post(`/reports/${id}/upvote`),
   
-  addComment: (id, comment) =>
-    api.post(`/reports/${id}/comments`, { comment }),
+  addComment: (id, text) =>
+    api.post(`/reports/${id}/comments`, { text }),
+  
+  addVoiceNote: (id, voiceUrl, duration) =>
+    api.post(`/reports/${id}/voice-notes`, { voiceUrl, duration }),
 }
 
 // User Services
@@ -89,13 +89,15 @@ export const adminService = {
   assignReport: (id, assignedTo, department) =>
     api.patch(`/admin/reports/${id}/assign`, { assignedTo, department }),
   
+  updateReportStatus: (id, status) =>
+    api.patch(`/admin/reports/${id}/status`, { status }),
+  
   resolveReport: (id, resolutionNotes) =>
     api.patch(`/admin/reports/${id}/resolve`, { resolutionNotes }),
   
   getStats: () =>
     api.get('/admin/stats'),
 
-  // Create admin credentials (for initial setup)
   createAdminCredentials: (credentials) =>
     api.post('/auth/admin/create-credentials', credentials),
 }
@@ -107,20 +109,45 @@ export const analyticsService = {
   
   getByStatus: () =>
     api.get('/analytics/by-status'),
-
-  getByDate: () =>
-    api.get('/analytics/by-date'),
   
   getResponseTimes: () =>
     api.get('/analytics/response-times'),
+
+  getByDate: (days = 30) =>
+    api.get('/analytics/by-date', { params: { days } }),
 }
 
-export const apiService = {
-  authService,
-  reportService,
-  userService,
-  adminService,
-  analyticsService,
+// Notification Services
+export const notificationService = {
+  getNotifications: (page = 1, limit = 20, unreadOnly = false) =>
+    api.get('/notifications', { params: { page, limit, unreadOnly } }),
+  
+  getUnreadCount: () =>
+    api.get('/notifications/count/unread'),
+  
+  markAsRead: (id) =>
+    api.patch(`/notifications/${id}/read`),
+  
+  markAllAsRead: () =>
+    api.patch('/notifications/all/read'),
+  
+  deleteNotification: (id) =>
+    api.delete(`/notifications/${id}`),
+}
+
+// Message Services
+export const messageService = {
+  getMessagesForReport: (reportId, page = 1, limit = 50) =>
+    api.get(`/messages/report/${reportId}`, { params: { page, limit } }),
+  
+  sendMessage: (reportId, recipientId, content, attachments = []) =>
+    api.post('/messages', { reportId, recipientId, content, attachments }),
+  
+  markMessageAsRead: (id) =>
+    api.patch(`/messages/${id}/read`),
+  
+  getUnreadMessageCount: () =>
+    api.get('/messages/count/unread'),
 }
 
 export default api

@@ -11,6 +11,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import ProfilePage from './pages/ProfilePage'
 import ReportDetailPage from './pages/ReportDetailPage'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 
 // Components
 import Navbar from './components/Navbar'
@@ -76,6 +77,12 @@ function App() {
               path="/login"
               element={
                 isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                isAuthenticated ? <Navigate to="/dashboard" /> : <RegisterPage />
               }
             />
 

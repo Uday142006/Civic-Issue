@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSelector } from 'react-redux'
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet'
+import axios from 'axios'
+import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api'
 import { reportService } from '../services/api'
 import ImageUpload from '../components/ImageUpload'
+import VoiceRecorder from '../components/VoiceRecorder'
 import './CitizenDashboard.css'
 
 function CitizenDashboard() {
@@ -11,15 +13,21 @@ function CitizenDashboard() {
   const [myReports, setMyReports] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [uploadedImages, setUploadedImages] = useState([])
+  const [voiceNotes, setVoiceNotes] = useState([])
+  const [uploadingVoice, setUploadingVoice] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: 'road_damage',
+    priority: 'medium',
   })
   const [userLocation, setUserLocation] = useState([22.5726, 88.3639])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('map') // map, my-reports, new-report
   const [selectedReport, setSelectedReport] = useState(null)
+  const [commentText, setCommentText] = useState('')
+  const [addingComment, setAddingComment] = useState(false)
+  const [selectedMarker, setSelectedMarker] = useState(null)
 
   // Fetch location
   useEffect(() => {
@@ -49,6 +57,34 @@ function CitizenDashboard() {
     }
   }
 
+  const handleVoiceRecorded = async (recording) => {
+    setUploadingVoice(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', recording.blob)
+      formData.append('upload_preset', 'civic_reports')
+      formData.append('cloud_name', import.meta.env.VITE_CLOUDINARY_NAME)
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_NAME}/video/upload`,
+        formData
+      )
+
+      setVoiceNotes([
+        ...voiceNotes,
+        {
+          url: response.data.secure_url,
+          duration: recording.duration,
+        },
+      ])
+    } catch (error) {
+      console.error('Voice upload failed:', error)
+      alert('Failed to upload voice note')
+    } finally {
+      setUploadingVoice(false)
+    }
+  }
+
   const handleSubmitReport = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -58,15 +94,18 @@ function CitizenDashboard() {
         ...formData,
         latitude: userLocation[0],
         longitude: userLocation[1],
-        images: uploadedImages, // Include uploaded images
+        images: uploadedImages,
+        voiceNotes: voiceNotes,
       }
       await reportService.createReport(reportData)
-      setFormData({ title: '', description: '', category: 'road_damage' })
-      setUploadedImages([]) // Clear uploaded images
+      setFormData({ title: '', description: '', category: 'road_damage', priority: 'medium' })
+      setUploadedImages([])
+      setVoiceNotes([])
       setShowForm(false)
       fetchReports()
       alert('Report submitted successfully!')
     } catch (error) {
+      console.error('Error:', error)
       alert('Error submitting report')
     } finally {
       setLoading(false)
@@ -79,6 +118,28 @@ function CitizenDashboard() {
       fetchReports()
     } catch (error) {
       console.error('Error upvoting:', error)
+    }
+  }
+
+  const handleAddComment = async (reportId) => {
+    if (!commentText.trim()) {
+      alert('Please enter a comment')
+      return
+    }
+
+    setAddingComment(true)
+    try {
+      await reportService.addComment(reportId, commentText)
+      setCommentText('')
+      // Refresh selected report
+      const updated = myReports.find(r => r._id === reportId)
+      if (updated) setSelectedReport(updated)
+      fetchReports()
+    } catch (error) {
+      console.error('Error adding comment:', error)
+      alert('Failed to add comment')
+    } finally {
+      setAddingComment(false)
     }
   }
 
@@ -130,40 +191,103 @@ function CitizenDashboard() {
           <div className="tab-content">
             <h2>Live City Issue Map</h2>
             <div className="map-container">
-              <MapContainer
-                center={userLocation}
-                zoom={13}
-                style={{ height: '600px', borderRadius: '12px' }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; OpenStreetMap contributors'
-                />
-                {/* User Location */}
-                <Marker position={userLocation}>
-                  <Popup>Your Location</Popup>
-                </Marker>
-
-                {/* All Reports */}
-                {reports.map((report) => (
+              <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+                <GoogleMap
+                  mapContainerStyle={{
+                    height: '600px',
+                    borderRadius: '12px',
+                    width: '100%'
+                  }}
+                  center={{ lat: userLocation[0], lng: userLocation[1] }}
+                  zoom={13}
+                  options={{
+                    mapTypeControl: true,
+                    zoomControl: true,
+                    streetViewControl: false,
+                    fullscreenControl: true,
+                  }}
+                >
+                  {/* User Location Marker */}
                   <Marker
-                    key={report._id}
-                    position={[
-                      report.location.coordinates[1],
-                      report.location.coordinates[0],
-                    ]}
-                  >
-                    <Popup>
-                      <div className="popup-content">
-                        <h3>{report.title}</h3>
-                        <p><strong>Category:</strong> {report.category}</p>
-                        <p><strong>Status:</strong> {report.status}</p>
-                        <p>{report.description}</p>
+                    position={{ lat: userLocation[0], lng: userLocation[1] }}
+                    title="Your Location"
+                    icon={{
+                      path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+                      scale: 8,
+                      fillColor: '#3b82f6',
+                      fillOpacity: 1,
+                      strokeColor: '#1e40af',
+                      strokeWeight: 2,
+                    }}
+                    onClick={() => setSelectedMarker({ type: 'user', data: null })}
+                  />
+
+                  {/* Report Markers */}
+                  {reports.map((report) => (
+                    <Marker
+                      key={report._id}
+                      position={{
+                        lat: report.location.coordinates[1],
+                        lng: report.location.coordinates[0],
+                      }}
+                      title={report.title}
+                      icon={{
+                        path: window.google?.maps?.SymbolPath?.CIRCLE || 0,
+                        scale: 6,
+                        fillColor: 
+                          report.status === 'resolved' ? '#10b981' :
+                          report.status === 'in_progress' ? '#f59e0b' : '#ef4444',
+                        fillOpacity: 0.8,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                      }}
+                      onClick={() => setSelectedMarker({ type: 'report', data: report })}
+                    />
+                  ))}
+
+                  {/* Info Window for User Location */}
+                  {selectedMarker?.type === 'user' && (
+                    <InfoWindow
+                      position={{ lat: userLocation[0], lng: userLocation[1] }}
+                      onCloseClick={() => setSelectedMarker(null)}
+                    >
+                      <div className="info-window-content">
+                        <h3>📍 Your Location</h3>
+                        <p>Lat: {userLocation[0].toFixed(4)}</p>
+                        <p>Lng: {userLocation[1].toFixed(4)}</p>
                       </div>
-                    </Popup>
-                  </Marker>
-                ))}
-              </MapContainer>
+                    </InfoWindow>
+                  )}
+
+                  {/* Info Window for Report Markers */}
+                  {selectedMarker?.type === 'report' && selectedMarker?.data && (
+                    <InfoWindow
+                      position={{
+                        lat: selectedMarker.data.location.coordinates[1],
+                        lng: selectedMarker.data.location.coordinates[0],
+                      }}
+                      onCloseClick={() => setSelectedMarker(null)}
+                    >
+                      <div className="info-window-content">
+                        <h3>{selectedMarker.data.title}</h3>
+                        <p><strong>Category:</strong> {selectedMarker.data.category}</p>
+                        <p><strong>Status:</strong> {selectedMarker.data.status}</p>
+                        <p><strong>Priority:</strong> {selectedMarker.data.priority}</p>
+                        <p>{selectedMarker.data.description.substring(0, 80)}...</p>
+                        <button
+                          onClick={() => {
+                            setSelectedReport(selectedMarker.data)
+                            setSelectedMarker(null)
+                          }}
+                          className="btn-view-details"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </InfoWindow>
+                  )}
+                </GoogleMap>
+              </LoadScript>
             </div>
 
             {/* Issues List */}
@@ -179,14 +303,27 @@ function CitizenDashboard() {
                     >
                       <div className="issue-header">
                         <h4>{report.title}</h4>
-                        <span className={`status-badge status-${report.status}`}>
-                          {report.status}
-                        </span>
+                        <div className="badges">
+                          <span className={`status-badge status-${report.status}`}>
+                            {report.status}
+                          </span>
+                          <span className={`priority-badge priority-${report.priority}`}>
+                            {report.priority}
+                          </span>
+                        </div>
                       </div>
                       <p className="issue-category">
                         📍 {report.category.replace('_', ' ')}
                       </p>
                       <p className="issue-description">{report.description}</p>
+                      <div className="issue-media">
+                        {report.images && report.images.length > 0 && (
+                          <span>📸 {report.images.length} image{report.images.length > 1 ? 's' : ''}</span>
+                        )}
+                        {report.voiceNotes && report.voiceNotes.length > 0 && (
+                          <span>🎙️ {report.voiceNotes.length} note{report.voiceNotes.length > 1 ? 's' : ''}</span>
+                        )}
+                      </div>
                       <div className="issue-footer">
                         <button
                           className="upvote-btn"
@@ -226,19 +363,40 @@ function CitizenDashboard() {
                           📅 {new Date(report.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className={`status-badge status-${report.status}`}>
-                        {report.status}
-                      </span>
+                      <div className="report-badges">
+                        <span className={`status-badge status-${report.status}`}>
+                          {report.status}
+                        </span>
+                        <span className={`priority-badge priority-${report.priority}`}>
+                          {report.priority}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="report-content">
                       <p>{report.description}</p>
-                      {report.image?.url && (
-                        <img
-                          src={report.image.url}
-                          alt="Report"
-                          className="report-image"
-                        />
+                      {report.images && report.images.length > 0 && (
+                        <div className="report-images">
+                          {report.images.map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={img.url}
+                              alt={`Report ${idx + 1}`}
+                              className="report-image"
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {report.voiceNotes && report.voiceNotes.length > 0 && (
+                        <div className="report-voice-notes">
+                          <p><strong>Voice Notes:</strong></p>
+                          {report.voiceNotes.map((note, idx) => (
+                            <audio key={idx} controls style={{ width: '100%', marginBottom: '8px' }}>
+                              <source src={note.url} />
+                              Your browser does not support the audio element.
+                            </audio>
+                          ))}
+                        </div>
                       )}
                     </div>
 
@@ -278,7 +436,7 @@ function CitizenDashboard() {
 
             <form onSubmit={handleSubmitReport} className="report-form">
               <div className="form-group">
-                <label>Issue Title</label>
+                <label>Issue Title <span style={{ color: 'red' }}>*</span></label>
                 <input
                   type="text"
                   placeholder="Brief title of the issue"
@@ -290,25 +448,42 @@ function CitizenDashboard() {
                 />
               </div>
 
-              <div className="form-group">
-                <label>Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                >
-                  <option value="road_damage">🛣️ Road Damage</option>
-                  <option value="garbage">🗑️ Garbage</option>
-                  <option value="water_leakage">💧 Water Leakage</option>
-                  <option value="street_light">💡 Street Light</option>
-                  <option value="drainage">🌊 Drainage</option>
-                  <option value="other">❓ Other</option>
-                </select>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Category <span style={{ color: 'red' }}>*</span></label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
+                  >
+                    <option value="road_damage">🛣️ Road Damage</option>
+                    <option value="garbage">🗑️ Garbage</option>
+                    <option value="water_leakage">💧 Water Leakage</option>
+                    <option value="street_light">💡 Street Light</option>
+                    <option value="drainage">🌊 Drainage</option>
+                    <option value="other">❓ Other</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Priority</label>
+                  <select
+                    value={formData.priority}
+                    onChange={(e) =>
+                      setFormData({ ...formData, priority: e.target.value })
+                    }
+                  >
+                    <option value="low">🟢 Low</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
+                    <option value="critical">🔴 Critical</option>
+                  </select>
+                </div>
               </div>
 
               <div className="form-group">
-                <label>Description</label>
+                <label>Description <span style={{ color: 'red' }}>*</span></label>
                 <textarea
                   placeholder="Describe the issue in detail..."
                   value={formData.description}
@@ -323,16 +498,18 @@ function CitizenDashboard() {
               {/* Image Upload Component */}
               <ImageUpload onImagesChange={setUploadedImages} />
 
+              {/* Voice Recorder Component */}
+              <VoiceRecorder onVoiceRecorded={handleVoiceRecorded} />
+
               <div className="form-info">
                 <p>
-                  📍 <strong>Location:</strong> Your current location will be added
-                  to the report
+                  📍 <strong>Location:</strong> Your current location will be added to the report
                 </p>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploadingVoice}
                 className="btn-primary"
               >
                 {loading ? 'Submitting...' : '📤 Submit Report'}
@@ -353,19 +530,77 @@ function CitizenDashboard() {
               ✕
             </button>
             <h2>{selectedReport.title}</h2>
-            {selectedReport.image?.url && (
-              <img
-                src={selectedReport.image.url}
-                alt="Report"
-                className="modal-image"
-              />
+            <div className="modal-badges">
+              <span className={`status-badge status-${selectedReport.status}`}>
+                {selectedReport.status}
+              </span>
+              <span className={`priority-badge priority-${selectedReport.priority}`}>
+                {selectedReport.priority}
+              </span>
+            </div>
+            
+            {selectedReport.images && selectedReport.images.length > 0 && (
+              <div className="modal-images">
+                {selectedReport.images.map((img, idx) => (
+                  <img key={idx} src={img.url} alt={`Report ${idx + 1}`} />
+                ))}
+              </div>
             )}
+            
             <p>{selectedReport.description}</p>
+            
+            {selectedReport.voiceNotes && selectedReport.voiceNotes.length > 0 && (
+              <div className="modal-voice">
+                <p><strong>Voice Notes:</strong></p>
+                {selectedReport.voiceNotes.map((note, idx) => (
+                  <audio key={idx} controls style={{ width: '100%' }}>
+                    <source src={note.url} />
+                  </audio>
+                ))}
+              </div>
+            )}
+            
             <div className="modal-meta">
               <p><strong>Category:</strong> {selectedReport.category}</p>
-              <p><strong>Status:</strong> {selectedReport.status}</p>
               <p><strong>Upvotes:</strong> {selectedReport.upvotes}</p>
             </div>
+
+            {selectedReport.status === 'resolved' && selectedReport.resolutionNotes && (
+              <div className="modal-resolution">
+                <h4>✅ Resolution</h4>
+                <p>{selectedReport.resolutionNotes}</p>
+              </div>
+            )}
+
+            {selectedReport.comments && selectedReport.comments.length > 0 && (
+              <div className="modal-comments">
+                <h4>Comments ({selectedReport.comments.length})</h4>
+                {selectedReport.comments.map((comment) => (
+                  <div key={comment._id} className="comment-item">
+                    <p><strong>{comment.userId?.name}:</strong> {comment.text}</p>
+                    <small>{new Date(comment.timestamp).toLocaleString()}</small>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {user?.id === selectedReport.submittedBy._id && (
+              <div className="modal-comment-form">
+                <textarea
+                  placeholder="Add a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  rows="2"
+                />
+                <button
+                  onClick={() => handleAddComment(selectedReport._id)}
+                  disabled={addingComment}
+                  className="btn-primary"
+                >
+                  {addingComment ? 'Adding...' : '💬 Add Comment'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

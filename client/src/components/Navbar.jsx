@@ -2,6 +2,8 @@ import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { logout } from '../redux/authSlice'
+import Notifications from './Notifications'
+import ThemeToggle from './ThemeToggle'
 import './Navbar.css'
 
 function Navbar({ isAuthenticated, user, onLogout }) {
@@ -41,6 +43,14 @@ function Navbar({ isAuthenticated, user, onLogout }) {
               <li className="nav-item">
                 <Link to="/profile" className="nav-link">Profile</Link>
               </li>
+
+              <li className="nav-item notification-item">
+                <Notifications />
+              </li>
+
+              <li className="nav-item theme-item">
+                <ThemeToggle />
+              </li>
               
               <li className="nav-item">
                 <button onClick={handleLogout} className="nav-link logout-btn">
@@ -55,6 +65,9 @@ function Navbar({ isAuthenticated, user, onLogout }) {
               </li>
               <li className="nav-item">
                 <Link to="/register" className="nav-link register-btn">Register</Link>
+              </li>
+              <li className="nav-item theme-item">
+                <ThemeToggle />
               </li>
             </>
           )}

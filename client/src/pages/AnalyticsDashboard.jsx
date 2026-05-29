@@ -8,7 +8,7 @@ import {
   BarChart, Bar, PieChart, Pie, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
-import { apiService } from '../services/api';
+import { analyticsService } from '../services/api';
 import '../styles/AnalyticsDashboard.css';
 
 const COLORS = ['#3498db', '#e74c3c', '#f39c12', '#27ae60', '#9b59b6', '#1abc9c'];
@@ -26,9 +26,9 @@ export default function AnalyticsDashboard() {
       try {
         setLoading(true);
         const [categoryData, statusData, dateData] = await Promise.all([
-          apiService.analyticsService.getByCategory(),
-          apiService.analyticsService.getByStatus(),
-          apiService.analyticsService.getByDate()
+          analyticsService.getByCategory(),
+          analyticsService.getByStatus(),
+          analyticsService.getByDate()
         ]);
 
         // Transform data for charts
